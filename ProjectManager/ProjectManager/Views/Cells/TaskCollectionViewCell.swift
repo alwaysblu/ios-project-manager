@@ -62,8 +62,8 @@ class TaskCollectionViewCell: UICollectionViewCell {
     private func setUpDeleteButton(layoutGuide: UILayoutGuide) {
 //        self.deleteButton.frame = CGRect(x: self.contentView.frame.width, y: 0, width: 150, height: self.contentView.frame.height)
         self.deleteButton.setTitle("Delete", for: .normal)
-        self.deleteButton.setTitleColor(.blue, for: .normal)
-        self.deleteButton.backgroundColor = .yellow
+        self.deleteButton.setTitleColor(.white, for: .normal)
+        self.deleteButton.backgroundColor = .red
         self.deleteButton.addTarget(self, action: #selector(deleteTask), for: .touchDown)
         self.deleteButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
