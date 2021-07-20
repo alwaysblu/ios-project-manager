@@ -8,7 +8,8 @@
 import Foundation
 import UIKit
 
-class TaskCollectionViewCell: UICollectionViewCell {
+//@available(iOS 14.0, *)
+class TaskCollectionViewCell: UICollectionViewListCell {
     static let identifier = "TaskCollectionViewCell"
     var taskTitle = UILabel()
     var taskDescription = UILabel()

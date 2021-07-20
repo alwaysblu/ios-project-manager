@@ -14,6 +14,8 @@ class ViewController: UIViewController {
     let toDoCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     let doingCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     let doneCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    var draggedCollectionView: UICollectionView?
+    var draggedCollectionViewIndexPath: IndexPath?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,6 +46,12 @@ class ViewController: UIViewController {
         self.toDoCollectionView.delegate = self
         self.doingCollectionView.delegate = self
         self.doneCollectionView.delegate = self
+        self.toDoCollectionView.dragDelegate = self
+        self.doingCollectionView.dragDelegate = self
+        self.doneCollectionView.dragDelegate = self
+        self.toDoCollectionView.dropDelegate = self
+        self.doingCollectionView.dropDelegate = self
+        self.doneCollectionView.dropDelegate = self
     }
     
     private func setUpDataSource() {
@@ -82,6 +90,40 @@ class ViewController: UIViewController {
             self.doneCollectionView.bottomAnchor.constraint(equalTo: layoutGuide.bottomAnchor, constant: 10),
         ])
     }
+    
+    private func findTask(collectionView: UICollectionView, indexPath:IndexPath) -> Task? {
+        switch collectionView {
+        case toDoCollectionView:
+            return toDoViewModel.referTask(at: indexPath)
+        case doingCollectionView:
+            return doingViewModel.referTask(at: indexPath)
+        case doneCollectionView:
+            return doneViewModel.referTask(at: indexPath)
+        default:
+            return nil
+        }
+    }
+    
+    private func findViewModel(collectionView: UICollectionView) -> TaskViewModel? {
+        switch collectionView {
+        case toDoCollectionView:
+            return toDoViewModel
+        case doingCollectionView:
+            return doingViewModel
+        case doneCollectionView:
+            return doneViewModel
+        default:
+            return nil
+        }
+    }
+    
+    private func removeDraggedCollectionViewItem() {
+        guard let draggedCollectionView = self.draggedCollectionView, let draggedCollectionViewIndexPath = self.draggedCollectionViewIndexPath else {
+            return
+        }
+        self.findViewModel(collectionView: draggedCollectionView)?.deleteTaskFromTaskList(index: draggedCollectionViewIndexPath.row)
+        draggedCollectionView.reloadData()
+    }
 }
 
 extension ViewController: UICollectionViewDelegate {
@@ -106,28 +148,35 @@ extension ViewController: UICollectionViewDataSource {
         guard let cell = toDoCollectionView.dequeueReusableCell(withReuseIdentifier: TaskCollectionViewCell.identifier, for: indexPath) as? TaskCollectionViewCell else {
             return UICollectionViewCell()
         }
-        
+        cell.accessories = [.delete()]
         if collectionView == self.toDoCollectionView {
-            cell.configureCell(with: Task(taskTitle: "toDoCollectionView", taskDescription: "toDoCollectionView", taskDeadline: "toDoCollectionView"))
+            guard let task = toDoViewModel.referTask(at: indexPath) else {
+                return cell
+            }
+            cell.configureCell(with: task)
             return cell
         }
-        
         if collectionView == self.doingCollectionView {
-            cell.configureCell(with: Task(taskTitle: "doingCollectionView", taskDescription: "doingCollectionView", taskDeadline: "doingCollectionView"))
+            guard let task = doingViewModel.referTask(at: indexPath) else {
+                return cell
+            }
+            cell.configureCell(with: task)
             return cell
         }
-        
-        cell.configureCell(with: Task(taskTitle: "doneCollectionView", taskDescription: "doneCollectionView", taskDeadline: "doneCollectionView"))
+        guard let task = doneViewModel.referTask(at: indexPath) else {
+            return cell
+        }
+        cell.configureCell(with: task)
         return cell
     }
 }
 
 extension ViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
         let width = collectionView.frame.width
         let estimatedHeight: CGFloat = 500.0
         let dummyCell = TaskCollectionViewCell(frame: CGRect(x: 0, y: 0, width: width, height: estimatedHeight))
+        
         if let task = self.findTask(collectionView: collectionView, indexPath: indexPath) {
             dummyCell.configureCell(with: task)
         }
@@ -135,35 +184,44 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
         let estimatedSize = dummyCell.systemLayoutSizeFitting(CGSize(width: width, height: estimatedHeight))
         return CGSize(width: width, height: estimatedSize.height)
     }
-    
-    private func findTask(collectionView: UICollectionView, indexPath:IndexPath) -> Task? {
-        switch collectionView {
-        case toDoCollectionView:
-            return toDoViewModel.referTask(at: indexPath)
-        case doingCollectionView:
-            return doingViewModel.referTask(at: indexPath)
-        case doneCollectionView:
-            return doneViewModel.referTask(at: indexPath)
-        default:
-            return nil
+}
+
+extension ViewController: UICollectionViewDragDelegate {
+    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        guard let task = findTask(collectionView: collectionView, indexPath: indexPath) else {
+            return []
         }
+        let itemProvider = NSItemProvider(object: task as Task)
+        let dragItem = UIDragItem(itemProvider: itemProvider)
+        draggedCollectionView = collectionView
+        draggedCollectionViewIndexPath = indexPath
+        return [dragItem]
     }
 }
 
-//extension ViewController: UICollectionViewDragDelegate {
-//    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-//        <#code#>
+extension ViewController: UICollectionViewDropDelegate {
+    func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
+        let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: 0, section: 0)
+        
+        coordinator.session.loadObjects(ofClass: Task.self) { [weak self] taskList in
+            collectionView.performBatchUpdates({
+                guard let task = taskList[0] as? Task else {
+                    return
+                }
+                self?.removeDraggedCollectionViewItem()
+                self?.findViewModel(collectionView: collectionView)?.insertTaskIntoTaskList(index: destinationIndexPath.row, task: Task(taskTitle: task.taskTitle, taskDescription: task.taskDescription, taskDeadline: task.taskDeadline))
+                self?.draggedCollectionView = nil
+                self?.draggedCollectionViewIndexPath = nil
+                collectionView.reloadData()
+            })
+        }
+    }
+//    func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
+//        if collectionView.hasActiveDrag {
+//            return UICollectionViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+//        }
+//        return UICollectionViewDropProposal(operation: .move)
 //    }
-//    
-//    
-//}
-//
-//extension ViewController: UICollectionViewDropDelegate {
-//    func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
-//        <#code#>
-//    }
-//    
-//    
-//}
+}
 
 
