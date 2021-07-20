@@ -127,7 +127,7 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: UICollectionViewDelegate {
-    
+
 }
 
 extension ViewController: UICollectionViewDataSource {
