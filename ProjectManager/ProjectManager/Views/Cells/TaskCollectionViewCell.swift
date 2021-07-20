@@ -14,7 +14,7 @@ class TaskCollectionViewCell: UICollectionViewCell {
     var taskDescription = UILabel()
     var taskDeadline = UILabel()
     var cellLabel: UILabel!
-    var pan: UIPanGestureRecognizer!
+    var panGestureRecognizer: UIPanGestureRecognizer!
     var deleteLabel: UILabel!
     
     override init(frame: CGRect) {
@@ -96,63 +96,73 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
     }
     
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        print(pan.translation(in: self))
-        return (pan.velocity(in: pan.view)).x < (pan.velocity(in: pan.view)).y
+        
+        if (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x < 0 {
+            return true
+        }
+        if self.center.x < self.frame.width/2 && (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x > 0 {
+            return true
+        }
+        
+        return false
     }
     
     private func commonInit() {
-        self.backgroundColor = UIColor.gray
-        
-        cellLabel = UILabel()
-        cellLabel.textColor = UIColor.white
-        cellLabel.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(cellLabel)
-        NSLayoutConstraint.activate([
-            cellLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            cellLabel.widthAnchor.constraint(equalTo: self.contentView.widthAnchor, multiplier: 1/3),
-            cellLabel.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
-            cellLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor)
-        ])
-
+        self.backgroundColor = UIColor.blue
         deleteLabel = UILabel()
         deleteLabel.text = "Delete"
         deleteLabel.textColor = UIColor.white
         self.insertSubview(deleteLabel, belowSubview: self.contentView)
         
-        pan = UIPanGestureRecognizer(target: self, action: #selector(onPan(_:)))
-        pan.delegate = self
-        self.addGestureRecognizer(pan)
+        panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onPan(_:)))
+        panGestureRecognizer.delegate = self
+        self.addGestureRecognizer(panGestureRecognizer)
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        
-        if (pan.state == UIGestureRecognizer.State.changed) {
-            let p: CGPoint = pan.translation(in: self)
+        if (panGestureRecognizer.state == UIGestureRecognizer.State.changed) {
+            let cellLocation: CGPoint = panGestureRecognizer.translation(in: self)
             let width = self.contentView.frame.width
             let height = self.contentView.frame.height
-            self.contentView.frame = CGRect(x: p.x, y: 0, width: width, height: height)
-            self.deleteLabel.frame = CGRect(x: p.x + width + deleteLabel.frame.size.width, y: 0, width: 50, height: height)
+            self.deleteLabel.frame = CGRect(x: cellLocation.x + width + deleteLabel.frame.size.width, y: 0, width: 50, height: height)
         }
-        
     }
     
     @objc func onPan(_ pan: UIPanGestureRecognizer) {
-        if pan.state == UIGestureRecognizer.State.began {
-            
-        } else if pan.state == UIGestureRecognizer.State.changed {
-            self.setNeedsLayout()
-        } else {
-            if abs(pan.velocity(in: self).x) > 500 {
-                let collectionView: UICollectionView = self.superview as! UICollectionView
-                let indexPath: IndexPath = collectionView.indexPathForItem(at: self.center)!
-//                collectionView.delegate?.collectionView!(collectionView, performAction: #selector(onPan(_:)), forItemAt: indexPath, withSender: nil)
-            } else {
-                UIView.animate(withDuration: 0.1, animations: {
-                    self.setNeedsLayout()
-                    self.layoutIfNeeded()
-                })
-            }
+        
+        let transition = pan.translation(in: self)
+        var changedX = self.center.x + transition.x
+        
+        if self.center.x < self.frame.width/2 - 150 {
+            changedX = self.frame.width/2 - 150
         }
+        if self.center.x > self.frame.width/2 {
+            changedX = self.frame.width/2
+        }
+        UIView.animate(withDuration: 0.2) {
+            self.center = CGPoint(x: changedX, y: self.center.y)
+            
+            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self)
+        }
+        
+//        if pan.state == UIGestureRecognizer.State.began {
+//
+//        } else if pan.state == UIGestureRecognizer.State.changed {
+//            self.setNeedsLayout()
+//        } else {
+//            if abs(pan.velocity(in: self).x) > 500 {
+//                let collectionView: UICollectionView = self.superview as! UICollectionView
+//                let indexPath: IndexPath = collectionView.indexPathForItem(at: self.center)!
+////                collectionView.delegate?.collectionView!(collectionView, performAction: #selector(onPan(_:)), forItemAt: indexPath, withSender: nil)
+//            } else {
+//                UIView.animate(withDuration: 0.1, animations: {
+//                    self.setNeedsLayout()
+//                    self.layoutIfNeeded()
+//                })
+//            }
+//        }
     }
 }
+
+
