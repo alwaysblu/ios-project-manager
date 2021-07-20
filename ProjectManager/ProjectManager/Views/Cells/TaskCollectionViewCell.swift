@@ -29,13 +29,14 @@ class TaskCollectionViewCell: UICollectionViewCell {
     
     private func setUpUI() {
         self.contentView.backgroundColor = UIColor.red
-        let safeArea = self.swipeView.safeAreaLayoutGuide
+        let swipeViewSafeArea = self.swipeView.safeAreaLayoutGuide
+        let contentViewSafeArea = self.contentView.safeAreaLayoutGuide
         self.addSubviewInContentView()
-        self.setUpSwipeView()
-        self.setUpDeleteButton()
-        self.setUpTaskTitleLabel(layoutGuide: safeArea)
-        self.setUpTaskDescriptionLabel(layoutGuide: safeArea)
-        self.setUpTaskDeadlineLabel(layoutGuide: safeArea)
+        self.setUpSwipeView(layoutGuide: contentViewSafeArea)
+        self.setUpDeleteButton(layoutGuide: contentViewSafeArea)
+        self.setUpTaskTitleLabel(layoutGuide: swipeViewSafeArea)
+        self.setUpTaskDescriptionLabel(layoutGuide: swipeViewSafeArea)
+        self.setUpTaskDeadlineLabel(layoutGuide: swipeViewSafeArea)
     }
     
     private func addSubviewInContentView() {
@@ -43,20 +44,34 @@ class TaskCollectionViewCell: UICollectionViewCell {
         self.contentView.addSubview(self.deleteButton)
     }
     
-    private func setUpSwipeView() {
-        self.swipeView.frame = CGRect(x: 0, y: 0, width: self.contentView.frame.width, height: 500)
+    private func setUpSwipeView(layoutGuide: UILayoutGuide) {
+//        self.swipeView.frame = CGRect(x: 0, y: 0, width: self.contentView.frame.width, height: 500)
         self.swipeView.backgroundColor = .white
         self.swipeView.addSubview(self.taskTitle)
         self.swipeView.addSubview(self.taskDescription)
         self.swipeView.addSubview(self.taskDeadline)
+        self.swipeView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            self.swipeView.topAnchor.constraint(equalTo: layoutGuide.topAnchor, constant: 0),
+            self.swipeView.leadingAnchor.constraint(equalTo: layoutGuide.leadingAnchor, constant: 0),
+            self.swipeView.trailingAnchor.constraint(equalTo: layoutGuide.trailingAnchor, constant: 0),
+            self.swipeView.bottomAnchor.constraint(equalTo: layoutGuide.bottomAnchor, constant: 0),
+        ])
     }
     
-    private func setUpDeleteButton() {
-        self.deleteButton.frame = CGRect(x: self.contentView.frame.width, y: 0, width: 150, height: self.contentView.frame.height)
+    private func setUpDeleteButton(layoutGuide: UILayoutGuide) {
+//        self.deleteButton.frame = CGRect(x: self.contentView.frame.width, y: 0, width: 150, height: self.contentView.frame.height)
         self.deleteButton.setTitle("Delete", for: .normal)
-        self.deleteButton.setTitleColor(.white, for: .normal)
-        self.deleteButton.backgroundColor = .red
+        self.deleteButton.setTitleColor(.blue, for: .normal)
+        self.deleteButton.backgroundColor = .yellow
         self.deleteButton.addTarget(self, action: #selector(deleteTask), for: .touchDown)
+        self.deleteButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            self.deleteButton.topAnchor.constraint(equalTo: layoutGuide.topAnchor, constant: 0),
+            self.deleteButton.leadingAnchor.constraint(equalTo: self.swipeView.trailingAnchor, constant: 0),
+//            self.deleteButton.widthAnchor.constraint(equalTo: nil , constant: 150),
+            self.deleteButton.bottomAnchor.constraint(equalTo: layoutGuide.bottomAnchor, constant: 0),
+        ])
     }
     
     private func setUpTaskTitleLabel(layoutGuide: UILayoutGuide) {
@@ -145,7 +160,8 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
     }
     
     @objc func onPan(_ pan: UIPanGestureRecognizer) {
-        
+        self.swipeView.translatesAutoresizingMaskIntoConstraints = true
+        self.deleteButton.translatesAutoresizingMaskIntoConstraints = true
         let transition = pan.translation(in: self.swipeView)
         var changedX = self.swipeView.center.x + transition.x
         
