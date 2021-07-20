@@ -150,16 +150,24 @@ extension ViewController: UICollectionViewDataSource {
         }
         
         if collectionView == self.toDoCollectionView {
-            cell.configureCell(with: Task(taskTitle: "toDoCollectionView", taskDescription: "toDoCollectionView", taskDeadline: "toDoCollectionView"))
+            guard let task = toDoViewModel.referTask(at: indexPath) else {
+                return UICollectionViewCell()
+            }
+            cell.configureCell(with: task)
             return cell
         }
         
         if collectionView == self.doingCollectionView {
-            cell.configureCell(with: Task(taskTitle: "doingCollectionView", taskDescription: "doingCollectionView", taskDeadline: "doingCollectionView"))
+            guard let task = doingViewModel.referTask(at: indexPath) else {
+                return UICollectionViewCell()
+            }
+            cell.configureCell(with: task)
             return cell
         }
-        
-        cell.configureCell(with: Task(taskTitle: "doneCollectionView", taskDescription: "doneCollectionView", taskDeadline: "doneCollectionView"))
+        guard let task = doneViewModel.referTask(at: indexPath) else {
+            return UICollectionViewCell()
+        }
+        cell.configureCell(with: task)
         return cell
     }
 }
@@ -168,14 +176,11 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
         let width = collectionView.frame.width
-        let estimatedHeight: CGFloat = 500.0
-        let dummyCell = TaskCollectionViewCell(frame: CGRect(x: 0, y: 0, width: width, height: estimatedHeight))
+        let dummyCell = TaskCollectionViewCell(frame: CGRect(x: 0, y: 0, width: width, height: 500.0))
         if let task = self.findTask(collectionView: collectionView, indexPath: indexPath) {
             dummyCell.configureCell(with: task)
         }
-        dummyCell.layoutIfNeeded()
-        let estimatedSize = dummyCell.systemLayoutSizeFitting(CGSize(width: width, height: estimatedHeight))
-        return CGSize(width: width, height: estimatedSize.height)
+        return CGSize(width: width, height: dummyCell.getEstimatedHeight())
     }
 }
 
