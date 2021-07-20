@@ -31,6 +31,7 @@ class TaskCollectionViewCell: UICollectionViewCell {
         self.contentView.backgroundColor = UIColor.red
         let safeArea = self.swipeView.safeAreaLayoutGuide
         self.addSubviewInContentView()
+        self.setUpSwipeView()
         self.setUpDeleteButton()
         self.setUpTaskTitleLabel(layoutGuide: safeArea)
         self.setUpTaskDescriptionLabel(layoutGuide: safeArea)
@@ -40,13 +41,15 @@ class TaskCollectionViewCell: UICollectionViewCell {
     private func addSubviewInContentView() {
         self.contentView.addSubview(self.swipeView)
         self.contentView.addSubview(self.deleteButton)
+    }
+    
+    private func setUpSwipeView() {
         self.swipeView.frame = CGRect(x: 0, y: 0, width: self.contentView.frame.width, height: 500)
         self.swipeView.backgroundColor = .white
         self.swipeView.addSubview(self.taskTitle)
         self.swipeView.addSubview(self.taskDescription)
         self.swipeView.addSubview(self.taskDeadline)
     }
-    
     
     private func setUpDeleteButton() {
         self.deleteButton.frame = CGRect(x: self.contentView.frame.width, y: 0, width: 150, height: self.contentView.frame.height)
