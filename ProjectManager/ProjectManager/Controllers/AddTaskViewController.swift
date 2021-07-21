@@ -19,6 +19,7 @@ final class AddTaskViewController: UIViewController {
         static let descriptionContent = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
     }
     
+    private let todoViewModel: TaskViewModel
     private var todoTitle: String?
     private var todoDescription: String?
     private let titleTextField: UITextField = {
@@ -53,6 +54,15 @@ final class AddTaskViewController: UIViewController {
         description.autocorrectionType = .no
         return description
     }()
+    
+    init(_ viewModel: TaskViewModel) {
+        todoViewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -89,16 +99,18 @@ final class AddTaskViewController: UIViewController {
         dismiss(animated: true) {
             // TODO Cell index 0에 추가
             guard let todoTitle = self.todoTitle else {
-                // Alert title is empty
+                // TODO: Alert title is empty
                 return
             }
             
             guard let todoDescription = self.todoDescription else {
-                // Alert description is empty
+                // TODO: Alert description is empty
                 return
             }
             
-            print(AddTask(title: todoTitle, date: self.datePickerView.date, description: todoDescription))
+            let data = Task(taskTitle: todoTitle, taskDescription: todoDescription, taskDeadline: self.datePickerView.date)
+            
+            self.todoViewModel.insertTaskIntoTaskList(index: 0, task: data)
         }
     }
     

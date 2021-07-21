@@ -37,9 +37,9 @@ class ViewController: UIViewController {
     }
     
     @objc private func addTask() {
-        let addTaskViewController = AddTaskViewController()
+        let addTaskViewController = AddTaskViewController(toDoViewModel)
         addTaskViewController.modalPresentationStyle = .formSheet
-        present(UINavigationController(rootViewController: addTaskViewController), animated: true, completion: nil)
+        present(UINavigationController(rootViewController: addTaskViewController), animated: true)
     }
     
     private func addSubviewInView() {
