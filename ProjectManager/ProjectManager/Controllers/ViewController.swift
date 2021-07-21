@@ -6,8 +6,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-    
+class ViewController: UIViewController, TaskAddable {
     let toDoViewModel = TaskViewModel()
     let doingViewModel = TaskViewModel()
     let doneViewModel = TaskViewModel()
@@ -16,12 +15,14 @@ class ViewController: UIViewController {
     let doneCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     var draggedCollectionView: UICollectionView?
     var draggedCollectionViewIndexPath: IndexPath?
+    let addTaskViewController = AddTaskViewController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.title = "Project Manager"
         let safeArea = self.view.safeAreaLayoutGuide
         setAddTask()
+        addTaskViewController.taskDelegate = self
         self.addSubviewInView()
         self.registerCollectionViewCell()
         self.setUpDelegate()
@@ -31,13 +32,17 @@ class ViewController: UIViewController {
         self.setUpDoneCollectionView(layoutGuide: safeArea)
     }
     
+    func addData(_ data: Task) {
+        toDoViewModel.insertTaskIntoTaskList(index: 0, task: data)
+        toDoCollectionView.reloadData()
+    }
+    
     private func setAddTask() {
         let addTaskItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTask))
         self.navigationItem.rightBarButtonItem = addTaskItem
     }
     
     @objc private func addTask() {
-        let addTaskViewController = AddTaskViewController(toDoViewModel)
         addTaskViewController.modalPresentationStyle = .formSheet
         present(UINavigationController(rootViewController: addTaskViewController), animated: true)
     }
