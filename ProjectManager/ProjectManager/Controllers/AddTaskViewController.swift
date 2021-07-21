@@ -9,12 +9,6 @@ import UIKit
 
 final class AddTaskViewController: UIViewController {
     
-    struct AddTask {
-        let title: String
-        let date: Date
-        let description: String
-    }
-    
     enum EdgeInsert {
         static let descriptionContent = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
     }
