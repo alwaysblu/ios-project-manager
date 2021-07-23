@@ -43,6 +43,37 @@ class ProjectManagerViewController: UIViewController, TaskAddDelegate , DeleteDe
         self.setUpToDoHeader()
         self.setUpDoingHeader()
         self.setUpDoneHeader()
+        self.setCallBackMethodOfCollectionView()
+    }
+    
+    private func setCallBackMethodOfCollectionView() {
+        toDoViewModel.updateTaskCollectionView = { [weak self] in
+            guard let toDoCollectionView = self?.toDoCollectionView else {
+                return
+            }
+            self?.updateCount(toDoCollectionView)
+            self?.toDoCollectionView.reloadData()
+        }
+        
+        doingViewModel.updateTaskCollectionView = { [weak self] in
+            guard let doingCollectionView = self?.doingCollectionView else {
+                return
+            }
+            self?.updateCount(doingCollectionView)
+            self?.doingCollectionView.reloadData()
+        }
+        
+        doneViewModel.updateTaskCollectionView = { [weak self] in
+            guard let doneCollectionView = self?.doneCollectionView else {
+                return
+            }
+            self?.updateCount(doneCollectionView)
+            self?.doneCollectionView.reloadData()
+        }
+    }
+    
+    private func setCallBackMethodOfHeader() {
+        
     }
     
     private func setCollectionViewConfigure() {
@@ -78,27 +109,22 @@ class ProjectManagerViewController: UIViewController, TaskAddDelegate , DeleteDe
     
     func addData(_ data: Task) {
         toDoViewModel.insertTaskIntoTaskList(index: 0, task: data)
-        toDoCollectionView.reloadData()
     }
     
     func updateData(state: State, indexPath: IndexPath, _ data: Task) {
         switch state {
         case .todo:
             toDoViewModel.updateTaskIntoTaskList(indexPath: indexPath, task: data)
-            toDoCollectionView.reloadData()
         case .doing:
             doingViewModel.updateTaskIntoTaskList(indexPath: indexPath, task: data)
-            doingCollectionView.reloadData()
         case .done:
             doneViewModel.updateTaskIntoTaskList(indexPath: indexPath, task: data)
-            doneCollectionView.reloadData()
         }
     }
         
     func deleteTask(collectionView: UICollectionView, indexPath: IndexPath) {
         self.findViewModel(collectionView: collectionView)?.deleteTaskFromTaskList(index: indexPath.row)
-        collectionView.deleteItems(at: [indexPath])
-        self.updateCount(collectionView)
+//        collectionView.deleteItems(at: [indexPath])
     }
     
     private func addSubviewInView() {
@@ -356,18 +382,12 @@ extension ProjectManagerViewController: UICollectionViewDropDelegate {
         coordinator.session.loadObjects(ofClass: Task.self) { [weak self] taskList in
             collectionView.performBatchUpdates({
                 guard let task = taskList[0] as? Task,
-                      let dropViewModel = self?.findViewModel(collectionView: collectionView),
-                      let dragCollectionViewIndexPath = self?.dragCollectionViewIndexPath,
-                      let dragCollectionView = self?.dragCollectionView
+                      let dropViewModel = self?.findViewModel(collectionView: collectionView)
                       else {
                     return
                 }
-                self?.dragCollectionView?.deleteItems(at: [dragCollectionViewIndexPath])
-                collectionView.insertItems(at: [destinationIndexPath])
                 self?.removeDraggedCollectionViewItem()
                 dropViewModel.insertTaskIntoTaskList(index: destinationIndexPath.row, task: Task(taskTitle: task.taskTitle, taskDescription: task.taskDescription, taskDeadline: task.taskDeadline))
-                self?.updateCount(dragCollectionView)
-                self?.updateCount(collectionView)
                 self?.setDraggedItemToNil()
             })
         }
