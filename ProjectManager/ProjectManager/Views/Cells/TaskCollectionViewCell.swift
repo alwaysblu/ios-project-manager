@@ -87,7 +87,7 @@ class TaskCollectionViewCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             self.deleteButton.topAnchor.constraint(equalTo: swipeView.topAnchor, constant: 0),
             self.deleteButton.leadingAnchor.constraint(equalTo: self.swipeView.trailingAnchor, constant: 0),
-            self.deleteButton.bottomAnchor.constraint(equalTo: swipeView.bottomAnchor, constant: 0),
+            self.deleteButton.heightAnchor.constraint(equalTo: swipeView.heightAnchor, constant: 0),
         ])
     }
     
@@ -166,6 +166,7 @@ class TaskCollectionViewCell: UICollectionViewCell {
         self.swipeView.layoutIfNeeded()
         self.estimatedSize = self.swipeView.systemLayoutSizeFitting(sizeThatFits(CGSize(width: self.contentView.frame.width, height: 500.0)))
         self.swipeView.frame = CGRect(x: 0, y: 0, width: self.contentView.frame.width, height: self.estimatedSize.height)
+        self.deleteButton.frame = CGRect(x: 0, y: 0, width: 0, height: self.estimatedSize.height)
         guard let isDeadlinePassed = checkIfDeadlineHasPassed(deadline: convertDateToString(with.taskDeadline)) else {
             return
         }
