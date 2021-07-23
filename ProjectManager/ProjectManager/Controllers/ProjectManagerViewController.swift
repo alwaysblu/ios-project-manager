@@ -124,7 +124,6 @@ class ProjectManagerViewController: UIViewController, TaskAddDelegate , DeleteDe
         
     func deleteTask(collectionView: UICollectionView, indexPath: IndexPath) {
         self.findViewModel(collectionView: collectionView)?.deleteTaskFromTaskList(index: indexPath.row)
-//        collectionView.deleteItems(at: [indexPath])
     }
     
     private func addSubviewInView() {
@@ -382,10 +381,13 @@ extension ProjectManagerViewController: UICollectionViewDropDelegate {
         coordinator.session.loadObjects(ofClass: Task.self) { [weak self] taskList in
             collectionView.performBatchUpdates({
                 guard let task = taskList[0] as? Task,
-                      let dropViewModel = self?.findViewModel(collectionView: collectionView)
+                      let dropViewModel = self?.findViewModel(collectionView: collectionView),
+                      let dragCollectionViewIndexPath = self?.dragCollectionViewIndexPath
                       else {
                     return
                 }
+                self?.dragCollectionView?.deleteItems(at: [dragCollectionViewIndexPath])
+                collectionView.insertItems(at: [destinationIndexPath])
                 self?.removeDraggedCollectionViewItem()
                 dropViewModel.insertTaskIntoTaskList(index: destinationIndexPath.row, task: Task(taskTitle: task.taskTitle, taskDescription: task.taskDescription, taskDeadline: task.taskDeadline))
                 self?.setDraggedItemToNil()

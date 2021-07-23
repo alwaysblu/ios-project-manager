@@ -21,11 +21,12 @@ class TaskCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        commonInit()
+        self.commonInit()
         self.layer.shadowOpacity = 1
         self.layer.shadowRadius = 1.0
         self.layer.shadowColor = UIColor.systemGray5.cgColor
         self.swipeView.layer.cornerRadius = 15
+        self.deleteButton.layer.cornerRadius = 15
         self.contentView.layer.cornerRadius = 15
         self.layer.cornerRadius = 15
     }
@@ -37,7 +38,7 @@ class TaskCollectionViewCell: UICollectionViewCell {
     func closeSwipe() {
         UIView.animate(withDuration: 0.2) {
             self.swipeView.frame = CGRect(x:0, y: 0, width: self.contentView.frame.width, height: self.contentView.frame.height)
-            self.deleteButton.frame = CGRect(x: self.contentView.frame.width, y: 0, width: 150, height: self.contentView.frame.height)
+            self.deleteButton.frame = CGRect(x: self.contentView.frame.width, y: 0, width: 150, height: self.swipeView.frame.height)
         }
     }
     
@@ -59,8 +60,8 @@ class TaskCollectionViewCell: UICollectionViewCell {
     }
     
     private func addSubviewInContentView() {
-        self.contentView.addSubview(self.swipeView)
         self.contentView.addSubview(self.deleteButton)
+        self.contentView.addSubview(self.swipeView)
     }
     
     private func setUpSwipeView() {
@@ -84,9 +85,9 @@ class TaskCollectionViewCell: UICollectionViewCell {
         self.deleteButton.addTarget(self, action: #selector(deleteTask), for: .touchDown)
         self.deleteButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            self.deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+            self.deleteButton.topAnchor.constraint(equalTo: swipeView.topAnchor, constant: 0),
             self.deleteButton.leadingAnchor.constraint(equalTo: self.swipeView.trailingAnchor, constant: 0),
-            self.deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0),
+            self.deleteButton.bottomAnchor.constraint(equalTo: swipeView.bottomAnchor, constant: 0),
         ])
     }
     
@@ -215,7 +216,7 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
             changedX = self.frame.width/2
         }
         UIView.animate(withDuration: 0.2) {
-            self.deleteButton.frame = CGRect(x: changedX + self.contentView.frame.width/2, y: 0, width: 150, height: self.contentView.frame.height)
+            self.deleteButton.frame = CGRect(x: changedX + self.contentView.frame.width/2, y: 0, width: 150, height: self.swipeView.frame.height)
             self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.deleteButton)
             self.swipeView.center = CGPoint(x: changedX, y: self.swipeView.center.y)
             self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.swipeView)
@@ -231,7 +232,7 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
             }
             UIView.animate(withDuration: 0.2) { [weak self] in
                 self?.swipeView.frame = CGRect(x: 0, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
-                self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!, y: 0, width: 150, height: (self?.contentView.frame.height)!)
+                self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!, y: 0, width: 150, height: (self?.swipeView.frame.height)!)
             }
         }
     }
