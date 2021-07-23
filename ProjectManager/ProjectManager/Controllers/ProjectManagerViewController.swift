@@ -43,10 +43,10 @@ class ProjectManagerViewController: UIViewController, TaskAddDelegate , DeleteDe
         self.setUpToDoHeader()
         self.setUpDoingHeader()
         self.setUpDoneHeader()
-        self.setCallBackMethodOfCollectionView()
+        self.setCallBackMethod()
     }
     
-    private func setCallBackMethodOfCollectionView() {
+    private func setCallBackMethod() {
         toDoViewModel.updateTaskCollectionView = { [weak self] in
             guard let toDoCollectionView = self?.toDoCollectionView else {
                 return
@@ -70,10 +70,6 @@ class ProjectManagerViewController: UIViewController, TaskAddDelegate , DeleteDe
             self?.updateCount(doneCollectionView)
             self?.doneCollectionView.reloadData()
         }
-    }
-    
-    private func setCallBackMethodOfHeader() {
-        
     }
     
     private func setCollectionViewConfigure() {
