@@ -186,12 +186,20 @@ class TaskCollectionViewCell: UICollectionViewCell {
 
 extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
     
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
+    override func dragStateDidChange(_ dragState: UICollectionViewCell.DragState) {
+        switch dragState {
+        case .lifting:
+            self.isDragged = true
+        case .none:
+            self.isDragged = false
+        case .dragging:
+            return
+        default:
+            return
+        }
     }
     
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        
         if isDragged {
             return false
         }
@@ -222,7 +230,6 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
             self.swipeView.center = CGPoint(x: changedX, y: self.swipeView.center.y)
             self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.swipeView)
         }
-        
         if pan.state == UIGestureRecognizer.State.ended {
             if self.swipeView.center.x + 150/2 < contentView.center.x {
                 UIView.animate(withDuration: 0.2) { [weak self] in
