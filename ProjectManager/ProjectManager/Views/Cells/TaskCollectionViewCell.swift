@@ -182,10 +182,6 @@ class TaskCollectionViewCell: UICollectionViewCell {
         dateFormatter.dateFormat = "yyyy.MM.dd"
         return dateFormatter.string(from: date)
     }
-    
-    func getEstimatedHeight() -> CGFloat {
-        return self.estimatedSize.height
-    }
 }
 
 extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
@@ -195,18 +191,14 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
     }
     
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        print("@@@@@@@@@@@@@@@@@@@@@@   \(isDragged)")
+        
         if isDragged {
-            print("$$$$$$$$$$$$$$$$$$   \(isDragged)")
             return false
         }
-        
         if (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x < 0 {
-            print("$$$$$$ true")
             return true
         }
         if self.swipeView.center.x < self.frame.width/2 && (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x > 0 {
-            print("$$$$$$ true")
             return true
         }
         return false
