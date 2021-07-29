@@ -264,6 +264,13 @@ class ProjectManagerViewController: UIViewController, TaskAddDelegate , DeleteDe
         }
     }
     
+    func findCell(collectionView: UICollectionView, indexPath: IndexPath) -> TaskCollectionViewCell? {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TaskCollectionViewCell.identifier, for: indexPath) as? TaskCollectionViewCell else {
+           return nil
+        }
+        return cell
+    }
+    
     private func removeDraggedCollectionViewItem() {
         guard let draggedCollectionView = self.dragCollectionView, let draggedCollectionViewIndexPath = self.dragCollectionViewIndexPath else {
             return
@@ -359,6 +366,9 @@ extension ProjectManagerViewController: UICollectionViewDelegateFlowLayout {
 
 extension ProjectManagerViewController: UICollectionViewDragDelegate {
     func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        print("before 드래그: ", findCell(collectionView: collectionView, indexPath: indexPath)?.isDragged)
+        findCell(collectionView: collectionView, indexPath: indexPath)?.isDragged = true
+        print("after 드래그: ", findCell(collectionView: collectionView, indexPath: indexPath)?.isDragged)
         guard let task = findTask(collectionView: collectionView, indexPath: indexPath) else {
             return []
         }
