@@ -362,7 +362,6 @@ extension ProjectManagerViewController: UICollectionViewDelegateFlowLayout {
         dummyCell.configureCell(data: task)
         dummyCell.layoutIfNeeded()
         let estimatedSize = dummyCell.systemLayoutSizeFitting(CGSize(width: width, height: estimatedHeight))
-
         return CGSize(width: width, height: estimatedSize.height)
     }
     
@@ -393,8 +392,8 @@ extension ProjectManagerViewController: UICollectionViewDragDelegate {
         }
         
         let sourceIndexPath = dragCoordinator.sourceIndexPath
+        findViewModel(collectionView: collectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.row)
         collectionView.performBatchUpdates {
-            findViewModel(collectionView: collectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.row)
             collectionView.deleteItems(at: [sourceIndexPath])
         }
     }
@@ -412,51 +411,31 @@ extension ProjectManagerViewController: UICollectionViewDropDelegate {
         }
         let item = coordinator.items[0]
         
-        switch coordinator.proposal.operation {
-        case .move:
-            guard let dragCoordinator = coordinator.session.localDragSession?.localContext as? TaskDragCoordinator else { return }
-//            guard let dragCoordinator = coordinator.session.localDragSession?.localContext else { return }
-            if let sourceIndexPath = item.sourceIndexPath {
-                dragCoordinator.isReordering = true
+        guard let dragCoordinator = coordinator.session.localDragSession?.localContext as? TaskDragCoordinator else { return }
+        if let sourceIndexPath = item.sourceIndexPath {
+            dragCoordinator.isReordering = true
+            guard let task = findTask(collectionView: collectionView, indexPath: sourceIndexPath) else { return }
+            collectionView.performBatchUpdates {
+                findViewModel(collectionView: collectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.item)
+                findViewModel(collectionView: collectionView)?.insertTaskIntoTaskList(index: destinationIndexPath.item, task: task)
+                collectionView.moveItem(at: sourceIndexPath, to: destinationIndexPath)
+            }
+        } else {
+            dragCoordinator.isReordering = false
+            if let task = item.dragItem.localObject as? Task {
                 collectionView.performBatchUpdates {
-                    guard let task = findTask(collectionView: collectionView, indexPath: sourceIndexPath) else { return }
-                    findViewModel(collectionView: collectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.row)
-                    findViewModel(collectionView: collectionView)?.insertTaskIntoTaskList(index: destinationIndexPath.row, task: task)
-                    collectionView.moveItem(at: sourceIndexPath, to: destinationIndexPath)
-                }
-            } else {
-                dragCoordinator.isReordering = false
-                if let task = item.dragItem.localObject as? Task {
-                    collectionView.performBatchUpdates {
-                        findViewModel(collectionView: collectionView)?.insertTaskIntoTaskList(index: destinationIndexPath.row, task: task)
-                        collectionView.insertItems(at: [destinationIndexPath])
-                    }
+                    findViewModel(collectionView: collectionView)?.insertTaskIntoTaskList(index: destinationIndexPath.item, task: task)
+                    collectionView.insertItems(at: [destinationIndexPath])
                 }
             }
-            dragCoordinator.dragCompleted = true
-            coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
-        case .copy:
-            let itemProvider = item.dragItem.itemProvider
-            itemProvider.loadObject(ofClass: Task.self) { taskItem, _ in
-                if let taskItem = taskItem as? Task {
-                    let task = Task(taskTitle: taskItem.taskTitle, taskDescription: taskItem.taskDescription, taskDeadline: taskItem.taskDeadline)
-                    self.findViewModel(collectionView: collectionView)?.insertTaskIntoTaskList(index: destinationIndexPath.row, task: task)
-                    DispatchQueue.main.async {
-                        collectionView.insertItems(at: [destinationIndexPath])
-                    }
-                }
-            }
-        default :
-            return
         }
+        dragCoordinator.dragCompleted = true
+        coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
     }
         
     func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
-        guard session.localDragSession != nil else {
-            return UICollectionViewDropProposal(operation: .copy, intent: .insertAtDestinationIndexPath)
-        }
         
-        guard session.items.count == 1 else {
+        if session.items.count != 1 {
             return UICollectionViewDropProposal(operation: .cancel)
         }
         

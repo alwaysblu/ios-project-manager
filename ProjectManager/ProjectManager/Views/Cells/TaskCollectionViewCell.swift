@@ -41,7 +41,7 @@ final class TaskCollectionViewCell: UICollectionViewCell {
         return label
     }()
     private let swipeView: UIView = {
-        let view = UIView()
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 500, height: 500))
         view.backgroundColor = .white
         view.layer.cornerRadius = 15
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -51,12 +51,15 @@ final class TaskCollectionViewCell: UICollectionViewCell {
         let button = UIButton()
         button.setTitle("Delete", for: .normal)
         button.setTitleColor(.white, for: .normal)
+        // 버튼이 작아지면 글씨 크기 또한 작아지도록 설정
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.backgroundColor = .red
         button.layer.cornerRadius = 17
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     private var panGestureRecognizer: UIPanGestureRecognizer!
+    private var isDrag = false
     var deleteDelegate: DeleteDelegate?
     
     // MARK: - Initial TaskCollectionViewCell
@@ -73,6 +76,11 @@ final class TaskCollectionViewCell: UICollectionViewCell {
     }
     
     // MARK: - TaskCollecionViewCell Configure
+    
+    private func setTranslatesAutoresizingMaskIntoConstraints() {
+        self.swipeView.translatesAutoresizingMaskIntoConstraints = false
+        self.deleteButton.translatesAutoresizingMaskIntoConstraints = false
+    }
     
     private func setPanGestureRecognizer() {
         self.panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onPan(_:)))
@@ -94,6 +102,13 @@ final class TaskCollectionViewCell: UICollectionViewCell {
         setTaskTitleLabel()
         setTaskDescriptionLabel()
         setTaskDeadlineLabel()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        taskTitle.text = nil
+        taskDeadline.text = nil
+        taskDescription.text = nil
     }
     
     // MARK: - Constraint
@@ -176,6 +191,8 @@ final class TaskCollectionViewCell: UICollectionViewCell {
     // MARK: - Outside Methd - initial Cell Configure
     
     func configureCell(data: Task) {
+        // 셀의 라벨들 초기화
+//        prepareForReuse()
         self.taskTitle.text = data.taskTitle
         self.taskDescription.text = data.taskDescription
         self.taskDeadline.text = convertDateToString(data.taskDeadline)
@@ -211,7 +228,28 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
     }
     
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // 오른쪽 스와이프 금지
+        if self.swipeView.center.x > self.frame.width/2 {
+            return false
+        }
+        
+        // 셀이 들어올려졌다면 스와이프 금지
+        if self.isDrag {
+            return false
+        }
+        
         return true
+    }
+    
+    // 현재 들어올린(드레그) 상태를 알려주는 메소드
+    override func dragStateDidChange(_ dragState: UICollectionViewCell.DragState) {
+        if dragState == .lifting {
+            self.isDrag = true
+        }
+        
+        if dragState == .none {
+            self.isDrag = false
+        }
     }
     
     @objc func onPan(_ pan: UIPanGestureRecognizer) {
@@ -221,7 +259,7 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
         var changedX = self.swipeView.center.x + transition.x
         
         if self.swipeView.center.x < self.frame.width/2 - 150 {
-            changedX = self.frame.width/2 - 120
+            changedX = self.frame.width/2 - 150
         }
         
         if self.swipeView.center.x > self.frame.width/2 {
@@ -229,23 +267,27 @@ extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
         }
         
         UIView.animate(withDuration: 0.2) {
-            self.deleteButton.frame = CGRect(x: changedX + self.contentView.frame.width/2, y: 0, width: 120, height: self.contentView.frame.height)
-            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.deleteButton)
             self.swipeView.center = CGPoint(x: changedX, y: self.swipeView.center.y)
             self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.swipeView)
+            // width - 방향 설정(- : 왼쪽)으로 스와이프 되는 방향으로 따라오게 설정
+            // 스와이프 되는 거리만큼 버튼의 크키가 커지도록 설정
+            self.deleteButton.frame = CGRect(x: self.contentView.frame.width , y: 0, width: -(self.contentView.center.x - self.swipeView.center.x), height: self.contentView.frame.height)
+            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.deleteButton)
+            
         }
         
         if pan.state == UIGestureRecognizer.State.ended {
             if self.swipeView.center.x + 150/2 < contentView.center.x {
                 UIView.animate(withDuration: 0.2) { [weak self] in
-                    self?.swipeView.frame = CGRect(x: -(self?.deleteButton.frame.width)!, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
-                    self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-120, y: 0, width: 150, height: (self?.contentView.frame.height)!)
+                    self?.swipeView.frame = CGRect(x: -150, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
+                    self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-150, y: 0, width: 150, height: (self?.contentView.frame.height)!)
                 }
                 return
             }
             UIView.animate(withDuration: 0.2) { [weak self] in
-                self?.swipeView.frame = CGRect(x: 0, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
-                self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-150, y: 0, width: 150, height: (self?.contentView.frame.height)!)
+                // 셀의 앞에 떨어진 만큼 거리 계산하여 완전히 닫히도록함
+                self?.swipeView.frame = CGRect(x: ((self?.frame.width)! - (self?.contentView.frame.width)!)/2, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
+                self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!, y: 0, width: 0, height: (self?.contentView.frame.height)!)
             }
         }
     }
