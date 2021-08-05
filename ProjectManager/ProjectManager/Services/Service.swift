@@ -8,6 +8,8 @@
 import Foundation
 
 struct Service {
+//    private var urlSessionStub = URLSessionStub()
+//    private let networkManager = NetworkManager(urlSession: URLSession.shared as! URLSessionProtocol)
     private let networkManager = NetworkManager()
     private let coreDataManager = CoreData()
     

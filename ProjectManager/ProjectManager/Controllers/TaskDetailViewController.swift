@@ -79,7 +79,6 @@ final class TaskDetailViewController: UIViewController {
     
     private func setTaskDetailViewControllerConfigure() {
         self.view.backgroundColor = .white
-//        self.navigationItem.title = "TODO"
     }
     
     private func setDelegate() {

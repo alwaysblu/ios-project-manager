@@ -7,7 +7,18 @@
 
 import Foundation
 
+
+protocol URLSessionProtocol {
+    func dataTask(with url: URL,
+                  completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void)
+    -> URLSessionDataTask
+}
+
 struct NetworkManager {
+//    private let urlSession: URLSessionProtocol
+//    init(urlSession: URLSessionProtocol) {
+//        self.urlSession = urlSession
+//    }
     private let baseURL = "https://vaporpms.herokuapp.com"
     private let indicatorView = IndicatorView()
     
@@ -64,7 +75,7 @@ struct NetworkManager {
             return
         }
         self.indicatorView.showIndicator()
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        self.urlSession.dataTask(with: url) { data, response, error in
             guard self.checkValidation(data: data, response: response, error: error) else {
                 completion(nil)
                 return
