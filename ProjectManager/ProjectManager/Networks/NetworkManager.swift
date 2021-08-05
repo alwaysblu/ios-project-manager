@@ -160,4 +160,16 @@ struct NetworkLoader {
             }
         }.resume()
     }
+    
+    func loadData(with request: URLRequest, completion: @escaping (Result<Bool, Error>) -> ()) {
+        self.session?.dataTask(with: request) { data, response, error in
+            let result = self.checkValidation(data: data, response: response, error: error)
+            switch result {
+            case .success(_):
+                completion(.success(true))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }.resume()
+    }
 }
