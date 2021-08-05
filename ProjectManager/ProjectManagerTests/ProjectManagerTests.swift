@@ -7,6 +7,7 @@
 
 import XCTest
 
+// We create a partial mock by subclassing the original class
 class URLSessionDataTaskMock: URLSessionDataTask {
     private let closure: () -> Void
 
@@ -21,20 +22,27 @@ class URLSessionDataTaskMock: URLSessionDataTask {
     }
 }
 
+class URLSessionMock: URLSession {
+    typealias CompletionHandler = (Data?, URLResponse?, Error?) -> Void
 
-final class URLSessionStub: URLSessionProtocol {
-    var requestParameters: (
-        url: URL,
-        completionHandler: (Data?, URLResponse?, Error?) -> Void
-    )?
-    
-    func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-        self.requestParameters = (
-            url: url,
-            completionHandler: completionHandler
-        )
+    // Properties that enable us to set exactly what data or error
+    // we want our mocked URLSession to return for any request.
+    var data: Data?
+    var error: Error?
+
+    override func dataTask(
+        with url: URL,
+        completionHandler: @escaping CompletionHandler
+    ) -> URLSessionDataTask {
+        let data = self.data
+        let error = self.error
+
+        return URLSessionDataTaskMock {
+            completionHandler(data, HTTPURLResponse(), error)
+        }
     }
 }
+
 
 @testable import ProjectManager
 class ProjectManagerTests: XCTestCase {
@@ -61,22 +69,21 @@ class ProjectManagerTests: XCTestCase {
         }
     }
     
-    func test_get_성공() { // 네트워크 의존적인 테스트
+    func test_get_성공() { // Setup our objects
+        let session = URLSessionMock()
+        let manager = NetworkManager(session: session)
+
+        // Create data and tell the session to always return it
         
-        // given
-        var sessionManagerStub = SessionManagerStub()
-        let service = NetworkManager(sessionManager: sessionManagerStub)
-        
-        // when
-        service.search()
-        
-        // then
-        
-        
-        networkManager.get { tasks in
-            XCTAssertEqual(tasks!,nil)
-        }
-        
+        let tasks = [Task(title: "test", detail: "test", deadline: 0, status: "test", id: "test")]
+        let data = try? JSONEncoder().encode(tasks)
+        session.data = data
+
+        // Perform the request and verify the result
+        var result: [Task]?
+        manager.get{ result = $0 }
+        let resultData = try? JSONEncoder().encode(result)
+        XCTAssertEqual(resultData, data)
     }
 
 }

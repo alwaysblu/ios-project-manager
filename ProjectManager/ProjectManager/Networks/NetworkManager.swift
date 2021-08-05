@@ -7,87 +7,37 @@
 
 import Foundation
 
-
-protocol URLSessionProtocol {
-    func dataTask(with url: URL,
-                  completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void)
-    -> URLSessionDataTask
-}
-
 struct NetworkManager {
-//    private let urlSession: URLSessionProtocol
-//    init(urlSession: URLSessionProtocol) {
-//        self.urlSession = urlSession
-//    }
-    private let baseURL = "https://vaporpms.herokuapp.com"
+    private let networkLoader = NetworkLoader()
     private let indicatorView = IndicatorView()
-    
-    private func checkValidation(data: Data?, response: URLResponse?, error: Error?) -> Bool {
-        if let error = error {
-            self.indicatorView.dismiss()
-            ProjectManagerViewController.networkStatus = .disconnection
-            setUpNotificationCenterPost()
-            print("\nError: \(error)\n")
-            return false
-        }
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            print("Invalid Response")
-            self.indicatorView.dismiss()
-            ProjectManagerViewController.networkStatus = .disconnection
-            setUpNotificationCenterPost()
-            return false
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            print("Status Code: \(httpResponse.statusCode)")
-            self.indicatorView.dismiss()
-            ProjectManagerViewController.networkStatus = .disconnection
-            setUpNotificationCenterPost()
-            return false
-        }
-        
-        guard let _ = data else {
-            print("Invalid Data")
-            self.indicatorView.dismiss()
-            ProjectManagerViewController.networkStatus = .disconnection
-            setUpNotificationCenterPost()
-            return false
-        }
-        ProjectManagerViewController.networkStatus = .connection
-        setUpNotificationCenterPost()
-        return true
-    }
+    private let baseURL = "https://vaporpms.herokuapp.com"
     
     private func setUpNotificationCenterPost() {
         let networkStatusNotification = NSNotification.Name.init("network Status")
         NotificationCenter.default.post(name: networkStatusNotification, object: nil)
     }
-    
     private func encodedData<T>(data: T) -> Data? where T: Encodable{
         let encoder = JSONEncoder()
         return try? encoder.encode(data)
     }
     
-    func get(completion: @escaping ([Task]?) -> ()) {
+    func get(completion: @escaping (Result<[Task], Error>) -> ()) {
         let urlString = baseURL + "/tasks"
         guard let url = URL(string: urlString) else {
             return
         }
         self.indicatorView.showIndicator()
-        self.urlSession.dataTask(with: url) { data, response, error in
-            guard self.checkValidation(data: data, response: response, error: error) else {
-                completion(nil)
-                return
+        networkLoader.loadData(with: url) { result in
+            switch result {
+            case .success(let tasks):
+                completion(.success(tasks))
+            case .failure(let error):
+                completion(.failure(error))
             }
-            guard let data = data else { return }
-            guard let tasks = try? JSONDecoder().decode([Task].self, from: data) else { return }
-            self.indicatorView.dismiss()
-            completion(tasks)
-        }.resume()
+        }
     }
     
-    func post(task: Task, completion: @escaping (Task?) -> ()) {
+    func post(task: Task, completion: @escaping (Result<Task, Error>) -> ()) {
         let urlString = baseURL + "/tasks"
         guard let url = URL(string: urlString) else {
             return
@@ -98,19 +48,17 @@ struct NetworkManager {
         requset.addValue("application/json", forHTTPHeaderField: "Content-Type")
         requset.httpMethod = "POST"
         requset.httpBody = encodedData(data: task)
-        
-        URLSession.shared.dataTask(with: requset) { data, response, error in
-            guard self.checkValidation(data: data, response: response, error: error) else {
-                completion(nil)
-                return
+        networkLoader.loadData(with: requset) { result in
+            switch result {
+            case .success(let task):
+                completion(.success(task))
+            case .failure(let error):
+                completion(.failure(error))
             }
-            guard let data = data else { return }
-            guard let task = try? JSONDecoder().decode(Task.self, from: data) else { return }
-            completion(task)
-        }.resume()
+        }
     }
     
-    func patch(task: Task, completion: @escaping (Task?) -> ()) {
+    func patch(task: Task, completion: @escaping (Result<Task, Error>) -> ()) {
         let urlString = baseURL + "/tasks" + "/\(task.id)"
         guard let url = URL(string: urlString) else {
             return
@@ -121,16 +69,14 @@ struct NetworkManager {
         requset.addValue("application/json", forHTTPHeaderField: "Content-Type")
         requset.httpMethod = "PATCH"
         requset.httpBody = encodedData(data: task)
-        
-        URLSession.shared.dataTask(with: requset) { data, response, error in
-            guard self.checkValidation(data: data, response: response, error: error) else {
-                completion(nil)
-                return
+        networkLoader.loadData(with: requset) { result in
+            switch result {
+            case .success(let task):
+                completion(.success(task))
+            case .failure(let error):
+                completion(.failure(error))
             }
-            guard let data = data else { return }
-            guard let task = try? JSONDecoder().decode(Task.self, from: data) else { return }
-            completion(task)
-        }.resume()
+        }
     }
     
     func delete(id: String, completion: @escaping (Bool) -> ()) {
@@ -143,13 +89,75 @@ struct NetworkManager {
         
         requset.addValue("application/json", forHTTPHeaderField: "Content-Type")
         requset.httpMethod = "DELETE"
-                
-        URLSession.shared.dataTask(with: requset) { data, response, error in
-            guard self.checkValidation(data: data, response: response, error: error) else {
-                completion(false)
-                return
+        networkLoader.loadData(with: requset) { result in
+            networkLoader.loadData(with: requset) { result in
+                switch result {
+                case .success():
+                    return true
+                case .failure():
+                    return false
+                }
             }
-            completion(true)
+        }
+    }
+}
+
+struct NetworkLoader {
+    private var session: URLSession?
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+    
+    private func checkValidation(data: Data?, response: URLResponse?, error: Error?) -> Result<Data, Error> {
+        if let error = error {
+            return .failure(error)
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            return .failure(DataError.invalidResponse)
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            return .failure(DataError.statusCode)
+        }
+        
+        guard let data = data else {
+            return .failure(DataError.invalidData)
+        }
+        return .success(data)
+    }
+    
+    func loadData(with url: URL, completion: @escaping (Result<[Task], Error>) -> ()) {
+        self.session?.dataTask(with: url) { data, response, error in
+            let result = self.checkValidation(data: data, response: response, error: error)
+            switch result {
+            case .success(let data):
+                do {
+                    let tasks = try JSONDecoder().decode([Task].self, from: data)
+                    completion(.success(tasks))
+                } catch {
+                    completion(.failure(error))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    func loadData<T>(with request: URLRequest, completion: @escaping (Result<T, Error>) -> ()) where T: Decodable {
+        self.session?.dataTask(with: request) { data, response, error in
+            let result = self.checkValidation(data: data, response: response, error: error)
+            switch result {
+            case .success(let data):
+                do {
+                    let task = try JSONDecoder().decode(T.self, from: data)
+                    completion(.success(task))
+                } catch {
+                    completion(.failure(error))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
         }.resume()
     }
 }
