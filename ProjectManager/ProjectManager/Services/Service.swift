@@ -13,28 +13,32 @@ struct Service {
     
     func getTask(status: State, completion: @escaping ([Task]) -> ()) {
         requestOperationstoServerInBuffer()
-        networkManager.get { tasks in
+        networkManager.get { result in
             guard let diskCacheTaskDataList = coreDataManager.getTaskList(),
                   let disCacheTaskList = convertTaskDataListToTaskList(taskDataList: diskCacheTaskDataList) else {
                 return
             }
-            guard let tasks = tasks else {
+            
+            switch result {
+            case .success(let tasks):
+                let filteredTaskList = filterTaskData(status: status, taskList: tasks)
+                completion(filteredTaskList)
+            case .failure(_):
                 let filteredTaskList = filterTaskData(status: status, taskList: disCacheTaskList)
                 completion(filteredTaskList)
-                return
             }
-            let filteredTaskList = filterTaskData(status: status, taskList: tasks)
-            completion(filteredTaskList)
         }
     }
     
     func postTask(task: Task) {
         requestOperationstoServerInBuffer()
         coreDataManager.createTask(task: task)
-        networkManager.post(task: task) { taskResult in
-            guard let _ = taskResult else {
-                pushIntoBuffer(task: task, httpMethod: "POST")
+        networkManager.post(task: task) { result in
+            switch result {
+            case .success(_):
                 return
+            case .failure(_):
+                pushIntoBuffer(task: task, httpMethod: "POST")
             }
         }
     }
@@ -42,10 +46,12 @@ struct Service {
     func patchTask(task: Task) {
         requestOperationstoServerInBuffer()
         coreDataManager.patchData(task: task)
-        networkManager.patch(task: task) { taskResult in
-            guard let _ = taskResult else {
-                pushIntoBuffer(task: task, httpMethod: "PATCH")
+        networkManager.patch(task: task) { result in
+            switch result {
+            case .success(_):
                 return
+            case .failure(_):
+                pushIntoBuffer(task: task, httpMethod: "POST")
             }
         }
     }
@@ -53,8 +59,8 @@ struct Service {
     func deleteTask(id: String) {
         requestOperationstoServerInBuffer()
         coreDataManager.deleteTask(id: id)
-        networkManager.delete(id: id) { networkStatus in
-            guard networkStatus else {
+        networkManager.delete(id: id) { result in
+            guard result else {
                 let mockTask = Task(title: "", detail: "", deadline: 0, status: "", id: id)
                 pushIntoBuffer(task: mockTask, httpMethod: "DELETE")
                 return
@@ -93,18 +99,22 @@ struct Service {
     func performHttpMethodAction(task: Task, httpMethod: String) {
         switch httpMethod {
         case "POST":
-            networkManager.post(task: task) { taskResult in
-                guard let _ = taskResult else {
+            networkManager.post(task: task) { result in
+                switch result {
+                case .success(_):
+                    coreDataManager.popFromBuffer(id: task.id)
+                case .failure(_):
                     return
                 }
-                coreDataManager.popFromBuffer(id: task.id)
             }
         case "PATCH":
-            networkManager.patch(task: task) { taskResult in
-                guard let _ = taskResult else {
+            networkManager.patch(task: task) { result in
+                switch result {
+                case .success(_):
+                    coreDataManager.popFromBuffer(id: task.id)
+                case .failure(_):
                     return
                 }
-                coreDataManager.popFromBuffer(id: task.id)
             }
         case "DELETE":
             networkManager.delete(id: task.id) { networkStatus in

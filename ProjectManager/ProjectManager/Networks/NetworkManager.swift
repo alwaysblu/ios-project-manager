@@ -29,8 +29,13 @@ struct NetworkManager {
         self.indicatorView.showIndicator()
         networkLoader.loadData(with: url) { result in
             switch result {
-            case .success(let tasks):
-                completion(.success(tasks))
+            case .success(let data):
+                do {
+                    let tasks = try JSONDecoder().decode([Task].self, from: data)
+                    completion(.success(tasks))
+                } catch {
+                    completion(.failure(error))
+                }
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -50,8 +55,13 @@ struct NetworkManager {
         requset.httpBody = encodedData(data: task)
         networkLoader.loadData(with: requset) { result in
             switch result {
-            case .success(let task):
-                completion(.success(task))
+            case .success(let data):
+                do {
+                    let task = try JSONDecoder().decode(Task.self, from: data)
+                    completion(.success(task))
+                } catch {
+                    completion(.failure(error))
+                }
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -63,7 +73,6 @@ struct NetworkManager {
         guard let url = URL(string: urlString) else {
             return
         }
-        
         var requset = URLRequest(url: url)
         
         requset.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -71,8 +80,13 @@ struct NetworkManager {
         requset.httpBody = encodedData(data: task)
         networkLoader.loadData(with: requset) { result in
             switch result {
-            case .success(let task):
-                completion(.success(task))
+            case .success(let data):
+                do {
+                    let task = try JSONDecoder().decode(Task.self, from: data)
+                    completion(.success(task))
+                } catch {
+                    completion(.failure(error))
+                }
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -84,7 +98,6 @@ struct NetworkManager {
         guard let url = URL(string: urlString) else {
             return
         }
-        
         var requset = URLRequest(url: url)
         
         requset.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -92,10 +105,10 @@ struct NetworkManager {
         networkLoader.loadData(with: requset) { result in
             networkLoader.loadData(with: requset) { result in
                 switch result {
-                case .success():
-                    return true
-                case .failure():
-                    return false
+                case .success(_):
+                    completion(true)
+                case .failure(_):
+                    completion(false)
                 }
             }
         }
@@ -127,46 +140,24 @@ struct NetworkLoader {
         return .success(data)
     }
     
-    func loadData(with url: URL, completion: @escaping (Result<[Task], Error>) -> ()) {
+    func loadData(with url: URL, completion: @escaping (Result<Data, Error>) -> ()) {
         self.session?.dataTask(with: url) { data, response, error in
             let result = self.checkValidation(data: data, response: response, error: error)
             switch result {
             case .success(let data):
-                do {
-                    let tasks = try JSONDecoder().decode([Task].self, from: data)
-                    completion(.success(tasks))
-                } catch {
-                    completion(.failure(error))
-                }
+                completion(.success(data))
             case .failure(let error):
                 completion(.failure(error))
             }
         }.resume()
     }
     
-    func loadData<T>(with request: URLRequest, completion: @escaping (Result<T, Error>) -> ()) where T: Decodable {
+    func loadData(with request: URLRequest, completion: @escaping (Result<Data, Error>) -> ()) {
         self.session?.dataTask(with: request) { data, response, error in
             let result = self.checkValidation(data: data, response: response, error: error)
             switch result {
             case .success(let data):
-                do {
-                    let task = try JSONDecoder().decode(T.self, from: data)
-                    completion(.success(task))
-                } catch {
-                    completion(.failure(error))
-                }
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }.resume()
-    }
-    
-    func loadData(with request: URLRequest, completion: @escaping (Result<Bool, Error>) -> ()) {
-        self.session?.dataTask(with: request) { data, response, error in
-            let result = self.checkValidation(data: data, response: response, error: error)
-            switch result {
-            case .success(_):
-                completion(.success(true))
+                completion(.success(data))
             case .failure(let error):
                 completion(.failure(error))
             }
