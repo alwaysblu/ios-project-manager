@@ -10,8 +10,7 @@ import Foundation
 struct NetworkManager {
     private let networkLoader = NetworkLoader()
     private let indicatorView = IndicatorView()
-    private let baseURL = "https://vaporpms.herokuapp.com"
-    
+
     private func setUpNotificationCenterPost() {
         let networkStatusNotification = NSNotification.Name.init("network Status")
         NotificationCenter.default.post(name: networkStatusNotification, object: nil)
@@ -22,7 +21,7 @@ struct NetworkManager {
     }
     
     func get(completion: @escaping (Result<[Task], Error>) -> ()) {
-        let urlString = baseURL + "/tasks"
+        let urlString = Secret.baseURL + "/tasks"
         guard let url = URL(string: urlString) else {
             return
         }
@@ -43,7 +42,7 @@ struct NetworkManager {
     }
     
     func post(task: Task, completion: @escaping (Result<Task, Error>) -> ()) {
-        let urlString = baseURL + "/tasks"
+        let urlString = Secret.baseURL + "/tasks"
         guard let url = URL(string: urlString) else {
             return
         }
@@ -69,7 +68,7 @@ struct NetworkManager {
     }
     
     func patch(task: Task, completion: @escaping (Result<Task, Error>) -> ()) {
-        let urlString = baseURL + "/tasks" + "/\(task.id)"
+        let urlString = Secret.baseURL + "/tasks" + "/\(task.id)"
         guard let url = URL(string: urlString) else {
             return
         }
@@ -94,7 +93,7 @@ struct NetworkManager {
     }
     
     func delete(id: String, completion: @escaping (Bool) -> ()) {
-        let urlString = baseURL + "/tasks" + "/\(id)"
+        let urlString = Secret.baseURL + "/tasks" + "/\(id)"
         guard let url = URL(string: urlString) else {
             return
         }
