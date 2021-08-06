@@ -71,18 +71,26 @@ class ProjectManagerTests: XCTestCase {
     
     func test_get_성공() { // Setup our objects
         let session = URLSessionMock()
-        let manager = NetworkManager(session: session)
+        let manager = NetworkLoader(session: session)
 
         // Create data and tell the session to always return it
         
         let tasks = [Task(title: "test", detail: "test", deadline: 0, status: "test", id: "test")]
         let data = try? JSONEncoder().encode(tasks)
         session.data = data
+        
+        let url = URL(fileURLWithPath: "url")
 
         // Perform the request and verify the result
-        var result: [Task]?
-        manager.get{ result = $0 }
-        let resultData = try? JSONEncoder().encode(result)
+        var resultData: Data?
+        manager.loadData(with: url) { result in
+            switch result {
+            case .success(let data):
+                resultData = data
+            case .failure(_):
+                return
+            }
+        }
         XCTAssertEqual(resultData, data)
     }
 
