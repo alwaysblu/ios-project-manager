@@ -8,6 +8,7 @@
 import Foundation
 
 enum DataError: Error {
+    case invalidURL
     case invalidData
     case statusCode
     case invalidResponse
@@ -16,6 +17,8 @@ enum DataError: Error {
 extension DataError: LocalizedError {
     var errorDescription: String? {
         switch self {
+        case .invalidURL:
+            return "Error: Invalid URL"
         case .invalidData:
             return "Error: Invalid Data."
         case .statusCode:
