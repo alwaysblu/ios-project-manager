@@ -39,6 +39,8 @@ ex)
 
 ## 📌 Pull Request
 
+* [step 1](https://github.com/yagom-academy/ios-project-manager/pull/20)
+* [step 2](https://github.com/yagom-academy/ios-project-manager/pull/26)
 
 <br>
 
@@ -50,7 +52,36 @@ ex)
 
 ## 📌 트러블슈팅
 
+- MVVM 아키텍처에서 Binding 된 값이 변하는 것에 대응해서 다양한 행위를 어떻게 구현할지 고민하였습니다.
 
+```
+-> 프로퍼티 옵져버의 oldValue를 이용하여 변한 값과 변하기 이전 값을 ViewController에 알려주도록하여
+
+ViewModel이 특정 ViewController의 로직을 갖고 있지 않게 하여 ViewModel의 재사용성을 높였습니다.
+```
+
+- 명세에 주어진 레이아웃을 구현하기위해서는 collectionView를 사용해야했습니다.
+
+WWDC에서 CollectionView에서의 swipe기능이 가능하다고 나와있었지만 Beta 버전에서만 지원하다가 swipe 기능을 지원하지 않았습니다.
+
+그래서 명세에 주어진 레이아웃과 swipe 기능을 구현하기 위해서는 어떻게 해야할지 고민하였습니다.
+
+```
+레이아웃을 구현하기위해서는 테이블 뷰의 헤더를 이용하는 방법과
+
+콜렉션 뷰를 이용하는 방법이 있었고
+
+콜렉션 뷰에서 스와이프를 구현하기 위해서는 커스텀해야했습니다.
+
+
+테이블 뷰의 section을 이용한 방법은 추후에 section이 필요한 경우에 수정에 문제가 생길 수 있을거라고 생각하였습니다.
+
+WWDC에서 콜레션뷰에 스와이프 기능을 제공한다고 하였기 때문에 조만간
+
+스와이프 기능이 콜렉션뷰의 모든 레이아웃에 적용될 것 같다고 생각하여
+
+커스텀으로 스와이프를 구현한 후에 콜렉션 뷰에 스와이프 기능이 나오면 수정하는 방향으로 결정하였습니다.
+```
 
 
 
