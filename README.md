@@ -92,32 +92,18 @@ WWDC에서 콜레션뷰에 스와이프 기능을 제공한다고 하였기 때�
 
 Add
 
-
-
-https://user-images.githubusercontent.com/75533266/130540543-3970ea94-ae09-4b01-a101-4d58571fec7d.mov
-
-
-
-https://user-images.githubusercontent.com/75533266/130540552-4701e0fa-7309-4ba5-8bc3-0275de8642cb.mov
-
-
-
-https://user-images.githubusercontent.com/75533266/130540553-7e973b31-afc2-4ece-a5e3-ea7f0f09847e.mov
-
-
-
-https://user-images.githubusercontent.com/75533266/130540558-7ccd8bad-3f8c-4cbd-bebb-f7ca0bac5bc0.mov
-
-
-
-Edit
-
-
+![add](https://user-images.githubusercontent.com/75533266/130540772-39bed302-8ec3-47d7-abf7-8626aabb93f9.gif)
 
 Delete
 
+![delete](https://user-images.githubusercontent.com/75533266/130540915-9a8115f2-0e71-4d7e-b1f1-5121a2d49679.gif)
 
+Edit
+
+![edit](https://user-images.githubusercontent.com/75533266/130541014-d2956e5b-3395-4126-b1f1-38cd1686d2d5.gif)
 
 Move
+
+![move](https://user-images.githubusercontent.com/75533266/130541028-ad170ef1-696c-4963-a6b7-e5c670d389e4.gif)
 
 
