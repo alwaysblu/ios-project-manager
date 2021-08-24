@@ -51,7 +51,7 @@ ex)
 ```
 -> 프로퍼티 옵져버의 oldValue를 이용하여 변한 값과 변하기 이전 값을 ViewController에 알려주도록하여
 
-ViewModel이 특정 ViewController의 로직을 갖고 있지 않게 하여 ViewModel의 재사용성을 높였습니다.
+ViewModel이 특정 ViewController의 로직을 갖고 있지 않게 하여 ViewModel을 독립적으로 만들어서 재사용성을 높였습니다.
 ```
 
 <br>
