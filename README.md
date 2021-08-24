@@ -92,9 +92,32 @@ WWDC에서 콜레션뷰에 스와이프 기능을 제공한다고 하였기 때�
 
 Add
 
-![Simulator Screen Recording - iPad Pro (12 9-inch) (5th generation) - 2021-08-02 at 00 57 07-20210802011207167](https://user-images.githubusercontent.com/75533266/130536078-4dfa4d7a-7435-4862-b28e-acbda76212a9.gif)
+
+
+https://user-images.githubusercontent.com/75533266/130540543-3970ea94-ae09-4b01-a101-4d58571fec7d.mov
+
+
+
+https://user-images.githubusercontent.com/75533266/130540552-4701e0fa-7309-4ba5-8bc3-0275de8642cb.mov
+
+
+
+https://user-images.githubusercontent.com/75533266/130540553-7e973b31-afc2-4ece-a5e3-ea7f0f09847e.mov
+
+
+
+https://user-images.githubusercontent.com/75533266/130540558-7ccd8bad-3f8c-4cbd-bebb-f7ca0bac5bc0.mov
+
+
+
+Edit
+
+
 
 Delete
 
-![delete](https://user-images.githubusercontent.com/75533266/130537303-7e15b29f-c2a4-4860-88d8-ae08bcc18465.gif)
+
+
+Move
+
 
