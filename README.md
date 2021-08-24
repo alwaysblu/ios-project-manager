@@ -96,7 +96,5 @@ Add
 
 Delete
 
-
-
-https://user-images.githubusercontent.com/75533266/130537152-e33a775c-9f04-4a46-b4ea-539e0c4cb0e4.mov
+![delete](https://user-images.githubusercontent.com/75533266/130537303-7e15b29f-c2a4-4860-88d8-ae08bcc18465.gif)
 
