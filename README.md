@@ -44,12 +44,6 @@ ex)
 
 <br>
 
-## 📌 구조
-
-<img width="1171" alt="스크린샷 2021-08-24 오전 7 44 19" src="https://user-images.githubusercontent.com/75533266/130529163-3d94651b-2b98-45e3-8613-2fa5d1ae43f5.png">
-
-<br>
-
 ## 📌 트러블슈팅
 
 - MVVM 아키텍처에서 Binding 된 값이 변하는 것에 대응해서 다양한 행위를 어떻게 구현할지 고민하였습니다.
@@ -85,6 +79,24 @@ WWDC에서 콜레션뷰에 스와이프 기능을 제공한다고 하였기 때�
 커스텀으로 스와이프를 구현한 후에 콜렉션 뷰에 스와이프 기능이 나오면 수정하는 방향으로 결정하였습니다.
 ```
 
+
 <br>
 
+## 📌 구조
+
+<img width="1171" alt="스크린샷 2021-08-24 오전 7 44 19" src="https://user-images.githubusercontent.com/75533266/130529163-3d94651b-2b98-45e3-8613-2fa5d1ae43f5.png">
+
+<br>
+
+## 📌 구현사항
+
+Add
+
+![Simulator Screen Recording - iPad Pro (12 9-inch) (5th generation) - 2021-08-02 at 00 57 07-20210802011207167](https://user-images.githubusercontent.com/75533266/130536078-4dfa4d7a-7435-4862-b28e-acbda76212a9.gif)
+
+Delete
+
+
+
+https://user-images.githubusercontent.com/75533266/130537152-e33a775c-9f04-4a46-b4ea-539e0c4cb0e4.mov
 
