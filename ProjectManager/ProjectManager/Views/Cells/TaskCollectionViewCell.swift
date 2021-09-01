@@ -67,7 +67,7 @@ final class TaskCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setPanGestureRecognizer()
+//        setPanGestureRecognizer()
         setTaskCollectionViewCell()
         setContentConstraint()
     }
@@ -78,11 +78,11 @@ final class TaskCollectionViewCell: UICollectionViewCell {
     
     // MARK: - TaskCollecionViewCell Configure
     
-    private func setPanGestureRecognizer() {
-        self.panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onPan(_:)))
-        self.panGestureRecognizer.delegate = self
-        self.addGestureRecognizer(self.panGestureRecognizer)
-    }
+//    private func setPanGestureRecognizer() {
+//        self.panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onPan(_:)))
+//        self.panGestureRecognizer.delegate = self
+//        self.addGestureRecognizer(self.panGestureRecognizer)
+//    }
     
     private func setTaskCollectionViewCell() {
         self.contentView.layer.cornerRadius = 15
@@ -217,68 +217,68 @@ final class TaskCollectionViewCell: UICollectionViewCell {
 
 // MAKR: - GestureRecognizer Delegate - Swipe
 
-extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
-    
-    override func dragStateDidChange(_ dragState: UICollectionViewCell.DragState) {
-            switch dragState {
-            case .lifting:
-                self.isDragged = true
-            case .none:
-                self.isDragged = false
-            case .dragging:
-                return
-            default:
-                return
-            }
-        }
-    
-    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if isDragged {
-            return false
-        }
-        if (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x < 0 {
-            return true
-        }
-        if self.swipeView.center.x < self.frame.width/2 && (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x > 0 {
-            return true
-        }
-        return false
-    }
-    
-    @objc func onPan(_ pan: UIPanGestureRecognizer) {
-        self.swipeView.translatesAutoresizingMaskIntoConstraints = true
-        self.deleteButton.translatesAutoresizingMaskIntoConstraints = true
-        let transition = pan.translation(in: self.swipeView)
-        var changedX = self.swipeView.center.x + transition.x
-        
-        if self.swipeView.center.x < self.frame.width/2 - 120 {
-            changedX = self.frame.width/2 - 120
-        }
-        
-        if self.swipeView.center.x > self.frame.width/2 {
-            changedX = self.frame.width/2
-        }
-        
-        UIView.animate(withDuration: 0.2) {
-            self.deleteButton.frame = CGRect(x: changedX + self.contentView.frame.width/2, y: 0, width: 120, height: self.contentView.frame.height)
-            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.deleteButton)
-            self.swipeView.center = CGPoint(x: changedX, y: self.swipeView.center.y)
-            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.swipeView)
-        }
-        
-        if pan.state == UIGestureRecognizer.State.ended {
-            if self.swipeView.center.x + 120/2 < contentView.center.x {
-                UIView.animate(withDuration: 0.2) { [weak self] in
-                    self?.swipeView.frame = CGRect(x: -(self?.deleteButton.frame.width)!, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
-                    self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-120, y: 0, width: 120, height: (self?.contentView.frame.height)!)
-                }
-                return
-            }
-            UIView.animate(withDuration: 0.2) { [weak self] in
-                self?.swipeView.frame = CGRect(x: 0, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
-                self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-120, y: 0, width: 120, height: (self?.contentView.frame.height)!)
-            }
-        }
-    }
-}
+//extension TaskCollectionViewCell: UIGestureRecognizerDelegate {
+//
+//    override func dragStateDidChange(_ dragState: UICollectionViewCell.DragState) {
+//            switch dragState {
+//            case .lifting:
+//                self.isDragged = true
+//            case .none:
+//                self.isDragged = false
+//            case .dragging:
+//                return
+//            default:
+//                return
+//            }
+//        }
+//
+//    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+//        if isDragged {
+//            return false
+//        }
+//        if (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x < 0 {
+//            return true
+//        }
+//        if self.swipeView.center.x < self.frame.width/2 && (panGestureRecognizer.velocity(in: panGestureRecognizer.view)).x > 0 {
+//            return true
+//        }
+//        return false
+//    }
+//
+//    @objc func onPan(_ pan: UIPanGestureRecognizer) {
+//        self.swipeView.translatesAutoresizingMaskIntoConstraints = true
+//        self.deleteButton.translatesAutoresizingMaskIntoConstraints = true
+//        let transition = pan.translation(in: self.swipeView)
+//        var changedX = self.swipeView.center.x + transition.x
+//
+//        if self.swipeView.center.x < self.frame.width/2 - 120 {
+//            changedX = self.frame.width/2 - 120
+//        }
+//
+//        if self.swipeView.center.x > self.frame.width/2 {
+//            changedX = self.frame.width/2
+//        }
+//
+//        UIView.animate(withDuration: 0.2) {
+//            self.deleteButton.frame = CGRect(x: changedX + self.contentView.frame.width/2, y: 0, width: 120, height: self.contentView.frame.height)
+//            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.deleteButton)
+//            self.swipeView.center = CGPoint(x: changedX, y: self.swipeView.center.y)
+//            self.panGestureRecognizer.setTranslation(CGPoint.zero, in: self.swipeView)
+//        }
+//
+//        if pan.state == UIGestureRecognizer.State.ended {
+//            if self.swipeView.center.x + 120/2 < contentView.center.x {
+//                UIView.animate(withDuration: 0.2) { [weak self] in
+//                    self?.swipeView.frame = CGRect(x: -(self?.deleteButton.frame.width)!, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
+//                    self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-120, y: 0, width: 120, height: (self?.contentView.frame.height)!)
+//                }
+//                return
+//            }
+//            UIView.animate(withDuration: 0.2) { [weak self] in
+//                self?.swipeView.frame = CGRect(x: 0, y: 0, width: (self?.contentView.frame.width)!, height: (self?.contentView.frame.height)!)
+//                self?.deleteButton.frame = CGRect(x: (self?.contentView.frame.width)!-120, y: 0, width: 120, height: (self?.contentView.frame.height)!)
+//            }
+//        }
+//    }
+//}
 
