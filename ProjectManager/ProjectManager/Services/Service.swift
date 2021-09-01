@@ -11,7 +11,7 @@ struct Service {
     private let networkManager = NetworkManager()
     private let coreDataManager = CoreData()
     
-    func getTask(status: State, completion: @escaping ([Task]) -> ()) {
+    func getTask(status: State, completion: @escaping ([Task], Bool) -> ()) {
         requestOperationstoServerInBuffer()
         networkManager.get { result in
             guard let diskCacheTaskDataList = coreDataManager.getTaskList(),
@@ -22,49 +22,53 @@ struct Service {
             switch result {
             case .success(let tasks):
                 let filteredTaskList = filterTaskData(status: status, taskList: tasks)
-                completion(filteredTaskList)
+                completion(filteredTaskList, true)
             case .failure(_):
                 let filteredTaskList = filterTaskData(status: status, taskList: disCacheTaskList)
-                completion(filteredTaskList)
+                completion(filteredTaskList, false)
             }
         }
     }
     
-    func postTask(task: Task) {
+    func postTask(task: Task, completion: @escaping (Bool) -> Void) {
         requestOperationstoServerInBuffer()
         coreDataManager.createTask(task: task)
         networkManager.post(task: task) { result in
             switch result {
             case .success(_):
-                return
+                completion(true)
             case .failure(_):
                 pushIntoBuffer(task: task, httpMethod: "POST")
+                completion(false)
             }
         }
     }
     
-    func patchTask(task: Task) {
+    func patchTask(task: Task, completion: @escaping (Bool) -> Void) {
         requestOperationstoServerInBuffer()
         coreDataManager.patchData(task: task)
         networkManager.patch(task: task) { result in
             switch result {
             case .success(_):
-                return
+                completion(true)
             case .failure(_):
                 pushIntoBuffer(task: task, httpMethod: "POST")
+                completion(false)
             }
         }
     }
     
-    func deleteTask(id: String) {
+    func deleteTask(id: String, completion: @escaping (Bool) -> Void) {
         requestOperationstoServerInBuffer()
         coreDataManager.deleteTask(id: id)
         networkManager.delete(id: id) { result in
             guard result else {
                 let mockTask = Task(title: "", detail: "", deadline: 0, status: "", id: id)
                 pushIntoBuffer(task: mockTask, httpMethod: "DELETE")
+                completion(false)
                 return
             }
+            completion(true)
         }
     }
     

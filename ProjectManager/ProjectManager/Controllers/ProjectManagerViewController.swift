@@ -5,9 +5,10 @@
 // 
 
 import UIKit
+import SwipeCellKit
 
-final class ProjectManagerViewController: UIViewController, TaskAddDelegate, DeleteDelegate, TaskHistoryDelegate {
-    static var networkStatus: NetworkStatus = .disconnection
+final class ProjectManagerViewController: UIViewController, TaskAddDelegate, TaskHistoryDelegate{
+    
     private var updatedCount = 0
 
     enum Style {
@@ -74,8 +75,8 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
         setHistory()
         setHeaderView()
         setCollecionView()
-        setDataBindingWithViewModel()
-        setUpNotificationCenter()
+        setDataBindingWithNetworkStatus()
+        setDataBindingWithTaskList()
     }
     
     // MARK: - Data Binding
@@ -108,7 +109,31 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
         })
     }
     
-    private func setDataBindingWithViewModel() {
+    private func setDataBindingWithNetworkStatus() {
+        toDoViewModel.updateNetworkStatus = { [weak self] isNetworkConnected in
+            if isNetworkConnected {
+                self?.updateNetworkStatus(networkStatus: .connection)
+                return
+            }
+            self?.updateNetworkStatus(networkStatus: .disconnection)
+        }
+        doingViewModel.updateNetworkStatus = { [weak self] isNetworkConnected in
+            if isNetworkConnected {
+                self?.updateNetworkStatus(networkStatus: .connection)
+                return
+            }
+            self?.updateNetworkStatus(networkStatus: .disconnection)
+        }
+        doneViewModel.updateNetworkStatus = { [weak self] isNetworkConnected in
+            if isNetworkConnected {
+                self?.updateNetworkStatus(networkStatus: .connection)
+                return
+            }
+            self?.updateNetworkStatus(networkStatus: .disconnection)
+        }
+    }
+    
+    private func setDataBindingWithTaskList() {
         toDoViewModel.updateTaskCollectionView = { [weak self] old, new in
             guard let self = self else {
                 return
@@ -126,12 +151,18 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
                     self.toDoCollectionView.reloadItems(at: [IndexPath(item: index, section: .zero)])
                 }
             }
-            if old.count < new.count {
+            if new.count - old.count == 1 {
                 let differenceIndexList = self.findDifferenceBetweenArrays(minuendArray: new, subtrahendArray: old)
                 for index in differenceIndexList {
                     self.insertElementIntoCollectionView(collectionView: self.toDoCollectionView, indexPath: IndexPath(item: index, section: .zero))
                 }
             }
+            if new.count - old.count > 1 {
+                DispatchQueue.main.async {
+                    self.toDoCollectionView.reloadData()
+                }
+            }
+            
         }
         
         doingViewModel.updateTaskCollectionView = { [weak self] old, new in
@@ -151,10 +182,15 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
                     self.doingCollectionView.reloadItems(at: [IndexPath(item: index, section: .zero)])
                 }
             }
-            if old.count < new.count {
+            if new.count - old.count == 1 {
                 let differenceIndexList = self.findDifferenceBetweenArrays(minuendArray: new, subtrahendArray: old)
                 for index in differenceIndexList {
                     self.insertElementIntoCollectionView(collectionView: self.doingCollectionView, indexPath: IndexPath(item: index, section: .zero))
+                }
+            }
+            if new.count - old.count > 1 {
+                DispatchQueue.main.async {
+                    self.doingCollectionView.reloadData()
                 }
             }
         }
@@ -176,10 +212,15 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
                     self.doneCollectionView.reloadItems(at: [IndexPath(item: index, section: .zero)])
                 }
             }
-            if old.count < new.count {
+            if new.count - old.count == 1 {
                 let differenceIndexList = self.findDifferenceBetweenArrays(minuendArray: new, subtrahendArray: old)
                 for index in differenceIndexList {
                     self.insertElementIntoCollectionView(collectionView: self.doneCollectionView, indexPath: IndexPath(item: index, section: .zero))
+                }
+            }
+            if new.count - old.count > 1 {
+                DispatchQueue.main.async {
+                    self.doneCollectionView.reloadData()
                 }
             }
         }
@@ -204,20 +245,21 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
     
     // MARK: - Cell Update & Delete
     
-    func deleteTask(collectionView: UICollectionView, indexPath: IndexPath, taskID: String, taskTitle: String) {
+    func deleteTask(collectionView: UICollectionView, indexPath: IndexPath) {
         guard let viewModel = self.findViewModel(collectionView: collectionView),
-              let taskId = viewModel.referTask(at: indexPath)?.id else {
+              let task = viewModel.referTask(at: indexPath) else {
             return
         }
-        viewModel.deleteTask(id: taskId)
-        viewModel.deleteTaskFromTaskList(index: indexPath.row, taskID: taskId)
+        
+        viewModel.deleteTask(id: task.id)
+        viewModel.deleteTaskFromTaskList(index: indexPath.row)
         switch collectionView {
         case toDoCollectionView:
-            taskHistoryViewModel.deleted(title: taskTitle, from: .todo)
+            taskHistoryViewModel.deleted(title: task.title, from: .todo)
         case doingCollectionView:
-            taskHistoryViewModel.deleted(title: taskTitle, from: .doing)
+            taskHistoryViewModel.deleted(title: task.title, from: .doing)
         case doneCollectionView:
-            taskHistoryViewModel.deleted(title: taskTitle, from: .done)
+            taskHistoryViewModel.deleted(title: task.title, from: .done)
         default:
             return
         }
@@ -288,14 +330,9 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Del
     
     // MARK: - Initial Configure
     
-    private func setUpNotificationCenter() {
-        let networkStatusNotification = NSNotification.Name.init("network Status")
-        NotificationCenter.default.addObserver(self, selector: #selector(updateNetworkStatus), name: networkStatusNotification, object: nil)
-    }
-    
-    @objc func updateNetworkStatus() {
+    private func updateNetworkStatus(networkStatus: NetworkStatus) {
         DispatchQueue.main.async {
-            if ProjectManagerViewController.networkStatus == .connection {
+            if networkStatus == .connection {
                 self.navigationItem.title = "Project Manager 📡 ✅ "
                 return
             }
@@ -491,7 +528,7 @@ extension ProjectManagerViewController: UICollectionViewDataSource {
         guard let cell = toDoCollectionView.dequeueReusableCell(withReuseIdentifier: TaskCollectionViewCell.identifier, for: indexPath) as? TaskCollectionViewCell else {
             return UICollectionViewCell()
         }
-        cell.deleteDelegate = self
+        cell.delegate = self
         
         if collectionView == self.toDoCollectionView {
             guard let task = toDoViewModel.referTask(at: indexPath) else {
@@ -548,7 +585,7 @@ extension ProjectManagerViewController: UICollectionViewDelegate {
 extension ProjectManagerViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let estimatedHeight: CGFloat = 300.0
-        let width = collectionView.frame.width * 0.95
+        let width = collectionView.frame.width
         let dummyCell = TaskCollectionViewCell(frame: CGRect(x: 0, y: 0, width: width, height: 500.0))
         guard let task = self.findTask(collectionView: collectionView, indexPath: indexPath) else { return CGSize() }
         dummyCell.configureCell(data: task)
@@ -599,7 +636,7 @@ extension ProjectManagerViewController: UICollectionViewDropDelegate {
             }
             let patchTask = Task(title: task.title, detail: task.detail, deadline: task.deadline, status: status.rawValue, id: task.id)
             self?.taskHistoryViewModel.moved(title: task.title, at: dragCollectionView, to: dropCollectionView)
-            self?.findViewModel(collectionView: draggedCollectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.row, taskID: patchTask.id)
+            self?.findViewModel(collectionView: draggedCollectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.row)
             dropViewModel.insertTaskIntoTaskList(index: destinationIndexPath.row, task: patchTask)
             dropViewModel.patchTask(task: patchTask)
         }
@@ -623,3 +660,13 @@ extension ProjectManagerViewController: UICollectionViewDropDelegate {
     }
 }
 
+extension ProjectManagerViewController: SwipeCollectionViewCellDelegate {
+    func collectionView(_ collectionView: UICollectionView, editActionsForItemAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+        guard orientation == .right else { return nil }
+          let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
+            self.deleteTask(collectionView: collectionView, indexPath: indexPath)
+          }
+
+        return [deleteAction]
+    }
+}

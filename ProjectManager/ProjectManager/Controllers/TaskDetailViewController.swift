@@ -4,7 +4,9 @@
 //
 //  Created by Fezravien on 2021/07/20.
 //
-
+// iOS 레이아웃 버그 존재
+//https://apple-dev.groups.io/g/xcode/topic/autolayout_help_please/79328241?p=,,,20,0,0,0::recentpostdate%2Fsticky,,,20,2,0,79328241
+//
 import UIKit
 
 final class TaskDetailViewController: UIViewController {
@@ -67,14 +69,10 @@ final class TaskDetailViewController: UIViewController {
         setDelegate()
         setConstraint()
         tapGestureAtKeyboardAnyWhere()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         setNavigationItem()
         checkMode()
     }
-    
+   
     // MARK: - Initial Configure
     
     private func setTaskDetailViewControllerConfigure() {
@@ -134,8 +132,7 @@ final class TaskDetailViewController: UIViewController {
         NSLayoutConstraint.activate([
             self.titleTextField.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 15),
             self.titleTextField.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 10),
-            self.titleTextField.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
-            self.titleTextField.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 1/16)
+            self.titleTextField.widthAnchor.constraint(equalTo: self.view.widthAnchor, constant: -20),
         ])
     }
     

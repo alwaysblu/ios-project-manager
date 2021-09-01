@@ -60,9 +60,11 @@ struct NetworkManager {
                     let task = try JSONDecoder().decode(Task.self, from: data)
                     completion(.success(task))
                 } catch {
+                    print("POST error")
                     completion(.failure(error))
                 }
             case .failure(let error):
+                print("POST error")
                 completion(.failure(error))
             }
         }
@@ -85,9 +87,11 @@ struct NetworkManager {
                     let task = try JSONDecoder().decode(Task.self, from: data)
                     completion(.success(task))
                 } catch {
+                    print("patch error")
                     completion(.failure(error))
                 }
             case .failure(let error):
+                print("patch error")
                 completion(.failure(error))
             }
         }
@@ -103,13 +107,12 @@ struct NetworkManager {
         requset.addValue("application/json", forHTTPHeaderField: "Content-Type")
         requset.httpMethod = "DELETE"
         networkLoader.loadData(with: requset) { result in
-            networkLoader.loadData(with: requset) { result in
-                switch result {
-                case .success(_):
-                    completion(true)
-                case .failure(_):
-                    completion(false)
-                }
+            switch result {
+            case .success(_):
+                completion(true)
+            case .failure(_):
+                print("DELETE error")
+                completion(false)
             }
         }
     }
