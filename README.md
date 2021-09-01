@@ -1,7 +1,5 @@
 # Project manager
 
-[최종 구현 브랜치](https://github.com/alwaysblu/ios-project-manager/tree/refactoring_JM)
-
 ## 📌 핵심 키워드
 
 - Word Wrapping 방식의 이해
