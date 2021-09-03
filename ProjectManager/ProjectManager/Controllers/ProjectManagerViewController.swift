@@ -169,7 +169,7 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Tas
             guard let self = self else {
                 return
             }
-            self.updateCount(self.toDoCollectionView)
+            self.updateCount(self.doingCollectionView)
             if old.count > new.count {
                 let differenceIndexList = self.findDifferenceBetweenArrays(minuendArray: old, subtrahendArray: new)
                 for index in differenceIndexList {
@@ -199,7 +199,7 @@ final class ProjectManagerViewController: UIViewController, TaskAddDelegate, Tas
             guard let self = self else {
                 return
             }
-            self.updateCount(self.toDoCollectionView)
+            self.updateCount(self.doneCollectionView)
             if old.count > new.count {
                 let differenceIndexList = self.findDifferenceBetweenArrays(minuendArray: old, subtrahendArray: new)
                 for index in differenceIndexList {
