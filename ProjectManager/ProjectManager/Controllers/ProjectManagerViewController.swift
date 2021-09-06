@@ -637,6 +637,11 @@ extension ProjectManagerViewController: UICollectionViewDropDelegate {
             let patchTask = Task(title: task.title, detail: task.detail, deadline: task.deadline, status: status.rawValue, id: task.id)
             self?.taskHistoryViewModel.moved(title: task.title, at: dragCollectionView, to: dropCollectionView)
             self?.findViewModel(collectionView: draggedCollectionView)?.deleteTaskFromTaskList(index: sourceIndexPath.row)
+            if dropViewModel.taskListCount() == 0 && destinationIndexPath.row == 1 {
+                dropViewModel.insertTaskIntoTaskList(index: 0, task: patchTask)
+                dropViewModel.patchTask(task: patchTask)
+                return
+            }
             dropViewModel.insertTaskIntoTaskList(index: destinationIndexPath.row, task: patchTask)
             dropViewModel.patchTask(task: patchTask)
         }

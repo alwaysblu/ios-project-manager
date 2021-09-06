@@ -34,10 +34,6 @@ final class TaskViewModel {
     }
     
     func insertTaskIntoTaskList(index: Int, task: Task) {
-        if taskList.count == 0 && index == 1 {
-            taskList.append(task)
-            return
-        }
         taskList.insert(task, at: index)
     }
     
