@@ -57,8 +57,11 @@ ViewModel이 특정 ViewController의 로직을 갖고 있지 않게 하여 View
 <br>
 
 - 명세에 주어진 레이아웃을 구현하기위해서는 collectionView를 사용해야했습니다.    
+
   WWDC에서 CollectionView에서의 swipe기능이 가능하다고 나와있었지만      
+  
   특정 레이아웃 이외의 다른 레이아웃에서의 swipe 기능 지원이 중지된 상태였습니다.      
+  
   그래서 명세에 주어진 레이아웃과 swipe 기능을 구현하기 위해서는 어떻게 해야할지 고민하였습니다.
 
 ```
